@@ -1,0 +1,22 @@
+[package]
+name = "my-site-server-rust"
+version = "0.0.1"
+edition = "2024"
+
+[dependencies]
+axum = "0.7"
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0.17"
+anyhow = "1.0.100"
+config = { version = "0.15.19", features = ["yaml"] }
+dotenvy = "0.15.7"
+sqlx = { version = "0.8.6", features = [
+    "mysql",
+    "runtime-tokio",
+    "macros",
+    "chrono",
+] }
+tracing = "0.1.43"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
