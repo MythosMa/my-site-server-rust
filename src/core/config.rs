@@ -9,29 +9,31 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Result<Self> {
-        // 1. 获取环境标识（仅用于本地开发时区分文件）
-        // 如果环境变量中已经有了具体的配置（如 DATABASE_URL），
-        // 那么 dotenvy 的加载失败也不会影响最终结果。
-        if let Ok(run_env) = std::env::var("RUN_ENV") {
-            let env_file = format!(".env.{}", run_env);
+        // 1. 获取本地开发环境标识
+        let run_env = std::env::var("RUN_ENV").ok();
+
+        // 2. 尝试加载文件
+        if let Some(env) = run_env {
+            // 本地开发模式：根据 RUN_ENV 加载 .env.development 等
+            let env_file = format!(".env.{}", env);
             dotenvy::from_filename(&env_file).ok();
-            // .ok() 保证了如果文件不存在（比如在 Docker 里），程序不会崩溃
+            println!("Local mode: Loading from {}", env_file);
         } else {
-            // 如果没设置 RUN_ENV，尝试加载默认的 .env
+            // 生产环境模式（Docker）：直接尝试加载默认 .env（如果存在）
+            // 如果是在 Docker 中运行，这里即便找不到文件也会因为 .ok() 忽略错误
             dotenvy::dotenv().ok();
         }
 
-        // 2. 核心：config 库的 Environment::default()
-        // 原理：它会自动扫描当前进程中所有的环境变量。
-        // 不管这些变量是来自 Docker 的 --env-file，还是来自 dotenvy 读取的文件，
-        // 对程序来说它们现在都在操作系统的环境变量表里，待遇是一样的。
+        // 3. 最终防线：从环境变量中提取
+        // 原理：不管变量是来自 Docker 的 --env-file 还是来自 dotenvy
+        // config::Environment::default() 都会统一从内存中的环境变量表里抓取数据
         let settings = config::Config::builder()
             .add_source(config::Environment::default())
             .build()
-            .map_err(|e| anyhow::anyhow!("Failed to build config: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Config build failed: {}", e))?;
 
         settings
             .try_deserialize()
-            .map_err(|e| anyhow::anyhow!("Failed to deserialize config: {}", e).into())
+            .map_err(|e| anyhow::anyhow!("Config deserialize failed: {}", e).into())
     }
 }

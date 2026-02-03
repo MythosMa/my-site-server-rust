@@ -16,7 +16,7 @@ async fn main() -> anyhow::Result<()> {
     let app = create_router(pool);
 
     // 4. 绑定端口并运行
-    let addr = format!("127.0.0.1:{}", config.server_port);
+    let addr = format!("0.0.0.0:{}", config.server_port);
     let listener = TcpListener::bind(&addr).await?;
     println!("listening on {}", addr);
 
