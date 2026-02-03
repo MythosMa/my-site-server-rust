@@ -4,7 +4,7 @@ use crate::models::{ApiResponse, SubWeb};
 use axum::{Json, extract::State};
 use tracing::{error, info};
 
-pub async fn list_sub_webs(
+pub async fn list_sub_web(
     State(state): State<SharedState>,
 ) -> Result<Json<ApiResponse<Vec<SubWeb>>>> {
     info!("Fetching all sub_web records from database..."); // 记录开始
